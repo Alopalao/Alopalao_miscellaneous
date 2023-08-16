@@ -4,10 +4,10 @@ def next_tag(available:list[list[int]]) -> int:
         # Not available tags
         return None
     
-    first_tag = available[0][0]
-    available_tags[0][0] += 1
-    if available[0][1] == available[0][0]:
-        available.pop(0)
+    first_tag = available[-1][1]
+    available[-1][1] -= 1
+    if available[-1][1] == available[-1][0]:
+        available.pop()
 
     return first_tag
 
