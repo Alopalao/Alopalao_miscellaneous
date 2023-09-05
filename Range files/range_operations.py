@@ -1,3 +1,4 @@
+import time
 def next_tag(available:list[list[int]]) -> int:
     # Take next available tag
     if not available:
@@ -27,6 +28,7 @@ def is_available_log(available:list[list[int]], tags:list[int]) -> (bool, int):
 
 def take_tags(available:list[list[int]], tags:list[int]) -> None:
     # Take RANGE from available, if possible (detects error)
+    print("TAGS -> ", tags)
     flag, i = is_available_log(available, tags)
     if flag is False:
         # tags not available
@@ -111,6 +113,33 @@ def is_included (rtc_range: list[int, int], avb_range: list[int, int]) -> bool:
         return True
     return False
 
+def range_intersection(
+    ranges_a: list[list[int]],
+    ranges_b: list[list[int]]
+) -> list[list[int]]:
+    """Returns the intersection between two list
+    of ranges"""
+    result = []
+    a_i, b_i = 0, 0
+    while a_i < len(ranges_a) and b_i < len(ranges_b):
+        fst_a, snd_a = ranges_a[a_i]
+        fst_b, snd_b = ranges_b[b_i]
+        # Moving forward with non-intersection
+        if snd_a < fst_b:
+            a_i += 1
+        elif snd_b < fst_a:
+            b_i += 1
+        else:
+            # Intersection
+            intersection_start = max(fst_a, fst_b)
+            intersection_end = min(snd_a, snd_b)
+            result.append([intersection_start, intersection_end])
+            if snd_a < snd_b:
+                a_i += 1
+            else:
+                b_i += 1
+    return result
+
 def subtract_ranges(restriction: list[list[int, int]], available: list[list[int, int]]) -> list[list[int, int]]:
     """Substract ranges list[list[int]]'s.
     This method does not catch error and `available` is expected
@@ -142,8 +171,23 @@ def subtract_ranges(restriction: list[list[int, int]], available: list[list[int,
     return result
 
 available_tags = [[7, 10], [13, 15], [20, 25]]
+tags_ex = [[7, 9], [14, 15], [21, 23]]
+#print(available_tags)
+#b = [11, 13]
+#print(b, " Adding -> ")
+#add_tags(available_tags, b)
+#print(available_tags)
+
+# Record the start time
+start_time = time.time()
+
+for i in tags_ex:
+    take_tags(available_tags, i)
+
+# Record the end time
+end_time = time.time()
+
 print(available_tags)
-b = [11, 13]
-print(b, " Adding -> ")
-add_tags(available_tags, b)
-print(available_tags)
+# Calculate the elapsed time
+elapsed_time = end_time - start_time
+print("TIME -> ", elapsed_time)
