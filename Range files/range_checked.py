@@ -87,8 +87,57 @@ global_range = [1, 4095]
 #a = [[1, 30], [50, 60], [80, 90], [100, 150]]
 #b = [[25, 55], [59, 79], [91, 120], [130, 4095]]
 
-a = [[3, 5], [7,9], [11, 16], [21, 23], [25,25], [27,28], [30,30]]
-b = [[1,3],[6,6],[8,8],[10,10],[12,13],[15,15],[17,20],[22,30]]
+#a = [[3, 5], [7,9], [11, 16], [21, 23], [25,25], [27,28], [30,30]]
+#b = [[1,3],[6,6],[8,8],[10,10],[12,13],[15,15],[17,20],[22,30]]
+#
+#print(range_intersection(a, b))
+#print(can_restrict(a,b))
 
-print(range_intersection(a, b))
-print(can_restrict(a,b))
+def range_difference(
+    ranges_a: list[list[int]],
+    ranges_b: list[list[int]]
+) -> list[list[int]]:
+    """The operation is (ranges_a - ranges_b)
+    This method simulates difference of sets.
+    """
+    result = []
+    a_i, b_i = 0, 0
+    update = True
+    while a_i < len(ranges_a) and b_i < len(ranges_b):
+        if update:
+            start_a, end_a = ranges_a[a_i]
+        else: update = True
+        start_b, end_b = ranges_b[b_i]
+        # Moving forward with non-intersection
+        if end_a < start_b:
+            result.append([start_a, end_a])
+            a_i += 1
+        elif end_b < start_a:
+            b_i += 1
+        else:
+            # Intersection
+            if start_a < start_b:
+                result.append([start_a, start_b - 1])
+            if end_a > end_b:
+                start_a = end_b + 1
+                update = False
+                b_i += 1
+            else:
+                a_i += 1
+    # Append the rest of ranges_a
+    while a_i < len(ranges_a):
+        if update:
+            start_a, end_a = ranges_a[a_i]
+        else: update = True
+        result.append([start_a, end_a])
+        a_i += 1
+    return result
+
+available_tags = [ [ 200, 219 ], [ 250, 300 ], [ 1010, 4095 ] ]
+tag_ranges = [ [ 200, 300 ], [ 1000, 4095 ] ]
+used_tags = range_difference(tag_ranges, available_tags)
+print(used_tags)
+
+new_tag_ranges = [[210, 270], [299, 700], [1000, 4095]]
+new_ava = range_difference(new_tag_ranges, used_tags)
+print(new_ava)
