@@ -189,6 +189,7 @@ def range_addition(ranges_a: list[list[int]], ranges_b: list[list[int]]) -> (lis
                 (a_i >= len_a or ranges_b[b_i][1] < ranges_a[a_i][0])):
             result.append(ranges_b[b_i])
             b_i += 1
+        # Intersection
         else:
             ignore = True
             new_range = [
@@ -197,12 +198,16 @@ def range_addition(ranges_a: list[list[int]], ranges_b: list[list[int]]) -> (lis
             ]
             a_i += 1
             b_i += 1
-            while a_i < len_a and ranges_a[a_i][0] <= new_range[1]:
-                new_range[1] = max(new_range[1], ranges_a[a_i][1])
-                a_i += 1
-            while b_i < len_b and ranges_b[b_i][0] <= new_range[1]:
-                new_range[1] = max(new_range[1], ranges_b[b_i][1])
-                b_i += 1
+            while a_i < len_a or b_i < len_b:
+                if a_i < len_a and (ranges_a[a_i][0] <= new_range[1]):
+                    new_range[1] = max(ranges_a[a_i][1], new_range[1])
+                    a_i += 1
+                elif b_i < len_b and (ranges_b[b_i][0] <= new_range[1]):
+                    new_range[1] = max(ranges_b[b_i][1], new_range[1])
+                    b_i += 1
+                # No intersection
+                else:
+                    break
             result.append(new_range)
     return result, ignore
 
