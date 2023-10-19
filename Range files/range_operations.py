@@ -170,30 +170,41 @@ def subtract_ranges(restriction: list[list[int, int]], available: list[list[int,
         result.append(any_left)
     return result
 
-def range_addition(ranges_a: list[list[int]], ranges_b: list[list[int]]) -> list[list[int]]:
+def range_addition(ranges_a: list[list[int]], ranges_b: list[list[int]]) -> (list[list[int]], bool):
     """Addition between two ranges.
-    Simulates the addition between two sets"""
+    Simulates the addition between two sets
+    Returns the result of the adittion and a boolean
+    which if it is True then there were something ignored."""
     result = []
+    ignore = False
     a_i, b_i = 0, 0
-    while a_i < len(ranges_a) or b_i < len(ranges_b):
-        if a_i < len(ranges_a) and (b_i >= len(ranges_b) or ranges_a[a_i][1] < ranges_b[b_i][0]):
+    len_a = len(ranges_a)
+    len_b = len(ranges_b)
+    while a_i < len_a or b_i < len_b:
+        if (a_i < len_a and
+                (b_i >= len_b or ranges_a[a_i][1] < ranges_b[b_i][0])):
             result.append(ranges_a[a_i])
             a_i += 1
-        elif b_i < len(ranges_b) and (a_i >= len(ranges_a) or ranges_b[b_i][1] < ranges_a[a_i][0]):
+        elif (b_i < len_b and
+                (a_i >= len_a or ranges_b[b_i][1] < ranges_a[a_i][0])):
             result.append(ranges_b[b_i])
             b_i += 1
         else:
-            new_range = [min(ranges_a[a_i][0], ranges_b[b_i][0]), max(ranges_a[a_i][1], ranges_b[b_i][1])]
+            ignore = True
+            new_range = [
+                min(ranges_a[a_i][0], ranges_b[b_i][0]),
+                max(ranges_a[a_i][1], ranges_b[b_i][1])
+            ]
             a_i += 1
             b_i += 1
-            while a_i < len(ranges_a) and ranges_a[a_i][0] <= new_range[1]:
+            while a_i < len_a and ranges_a[a_i][0] <= new_range[1]:
                 new_range[1] = max(new_range[1], ranges_a[a_i][1])
                 a_i += 1
-            while b_i < len(ranges_b) and ranges_b[b_i][0] <= new_range[1]:
+            while b_i < len_b and ranges_b[b_i][0] <= new_range[1]:
                 new_range[1] = max(new_range[1], ranges_b[b_i][1])
                 b_i += 1
             result.append(new_range)
-    return result
+    return result, ignore
 
 available_tags = [[7, 10], [13, 15], [20, 25]]
 tags_ex = [[7, 9], [14, 15], [21, 23]]
