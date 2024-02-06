@@ -33,4 +33,4 @@ class RingTopo(Topo):
         self.addLink(s3, s5)
         self.addLink(s4, s5)
 
-topos = {"mytopo": (lambda: RingTopo())}
+topos = {"2paths": (lambda: RingTopo())}

@@ -39,4 +39,4 @@ class RingTopo(Topo):
         self.addLink(s2, s6)
         self.addLink(s3, s6)
 
-topos = {"mytopo": (lambda: RingTopo())}
+topos = {"min3": (lambda: RingTopo())}
