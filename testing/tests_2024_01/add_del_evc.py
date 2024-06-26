@@ -9,9 +9,13 @@ api_response = ""
 bool_conf = ""
 my_vlans = ""
 thread_counter = {
-    6: {0: 0, 1: 0}, 1: {0: 0, 1: 0}, 2: {0: 0, 1: 0}, 3: {0: 0, 1: 0}, 4: {0: 0, 1: 0}, 5: {0: 0, 1: 0}
+    0: {"add": 0, "del": 0},
+    1: {"add": 0, "del": 0},
+    2: {"add": 0, "del": 0},
+    3: {"add": 0, "del": 0},
+    4: {"add": 0, "del": 0},
+    5: {"add": 0, "del": 0}
 }
-
 
 def create_evc(vlan:int, extra:str="") -> str:
     evc = {
@@ -19,10 +23,10 @@ def create_evc(vlan:int, extra:str="") -> str:
         "dynamic_backup_path": True,
         "uni_a": {
             "interface_id": "00:00:00:00:00:00:00:01:1",
-            "tag": {"tag_type": "vlan", "value": [[vlan, vlan+2]]}},
+            "tag": {"tag_type": "vlan", "value": vlan}},
         "uni_z": {
             "interface_id": "00:00:00:00:00:00:00:02:1",
-            "tag": {"tag_type": "vlan", "value": [[vlan, vlan+2]]}}
+            "tag": {"tag_type": "vlan", "value": vlan}}
     }
     response = httpx.post(MEF_URL, json=evc, timeout=120)
     if response.status_code//100 == 2:
@@ -38,21 +42,35 @@ def delete_evc(evc_id:str=None) -> bool:
         return True
     return False
 
-def toggle_evc(vlan:int, thread_n:int):
+def toggle_evc(vlan:int, thread_n:int, iterations:int):
+    print(f"Iterating {iterations} times")
     deleted = True
-    for i in range(1, 301):
-        if deleted:
-            thread_counter[thread_n][0] += 1
-            evc_id = create_evc(vlan) 
-            if not evc_id:
-                continue
-        thread_counter[thread_n][1] += 1
-        deleted = delete_evc(evc_id)
+    created = set()
+    vlan_counter = vlan
+    for i in range(iterations):
+        if created and random.randrange(1, 4) == 1:
+            deleted = False
+            evc_id = created.pop()
+            while not deleted:
+                deleted = delete_evc(evc_id)
+            thread_counter[thread_n]["del"] += 1
+        else:
+            evc_id = None
+            while not evc_id:
+                evc_id = create_evc(vlan_counter)
+            thread_counter[thread_n]["add"] += 1
+            created.add(evc_id)
+            vlan_counter += random.randrange(1,3)
 
-def start_toggle(threads:int) -> None:
+
+def start_toggle(threads:int, iterations:int) -> None:
     th_list = list()
-    for i in range(1, threads+1):
-        t = threading.Thread(target=toggle_evc, args=(i*10, i))
+    extra = 0
+    pack = iterations//threads
+    for i in range(threads):
+        if i + 1 == threads:
+            extra = iterations - threads * pack
+        t = threading.Thread(target=toggle_evc, args=(i*pack+extra, i, pack+extra))
         th_list.append(t)
     
     for thread in th_list:
@@ -63,13 +81,17 @@ def start_toggle(threads:int) -> None:
 
 if __name__ == "__main__":
     threads = 6
-    circuits = 2000
+    iterations = 2000
     try:
         threads = int(sys.argv[1])
         circuits = int(sys.argv[2])
     except IndexError:
-        #print(f"A number was not detected, {threads} threads will be deployed and {circuits} circuits will be created.")
-        x = 0
-    start_toggle(threads)
-    for i in range(1, threads+1):
-        print(f"CREATED -> {thread_counter[i][0]} - DELETED -> {thread_counter[i][1]}")
+        print(f"A number was not detected, {threads} threads will be deployed and {iterations} iterations will be run in total.")
+    start_toggle(threads, iterations)
+    created = 0
+    deleted = 0
+    for i in range(threads):
+        created += thread_counter[i]['add']
+        deleted += thread_counter[i]['del']
+        print(f"CREATED -> {thread_counter[i]['add']} - DELETED -> {thread_counter[i]['del']}")
+    print(f"EVCs active -> {created - deleted}")
