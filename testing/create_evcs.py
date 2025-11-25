@@ -62,11 +62,12 @@ def execute(circuit_n: int):
 
 
 if __name__ == "__main__":
-    circuit_n = 200
+    circuit_n = 100
     try:
         n = sys.argv[1]
         try:
             circuit_n = int(n)
+            print(f"{circuit_n} circuits will be created.")
         except ValueError:
             print("The argument should be an integer")
             sys.exit(1)
